@@ -3,6 +3,8 @@ import pygame
 from pygame.draw import circle, line, rect
 from pygame.math import Vector2
 
+from agent import Agent
+
 window_width = 1280
 window_height = 720
 
@@ -15,34 +17,31 @@ class App:
 
         self.running = True
 
-        self.circle_color = (255, 0, 0)
-        self.radius = 100
-        self.position = Vector2(window_width/2, window_height/2)
-        self.vel = Vector2(0, 0)
-        self.acc = Vector2(1, 1)
+        self.ball = Agent(position = Vector2(window_width/2, window_height/2), 
+                          radius = 100, 
+                          color = (100,0,0))
 
     def handle_input(self):
          for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         self.running = False
 
-    def update(self):
-        self.vel = self.vel + self.acc
-        self.position = self.position + self.vel
-        self.acc = Vector2(0,0)
+    def update(self, delta_time_ms):
+        self.ball.update(delta_time_ms)
     
     def draw(self):
         self.screen.fill("gray")
-        circle(self.screen, self.circle_color, self.position, self.radius)
+        self.ball.draw(self.screen)
         pygame.display.flip()
+    
 
     def run(self):
         while self.running:
+            dt = self.clock.tick(60)
             self.handle_input()
-            self.update()
+            self.update(dt)
             self.draw()
             
-            self.clock.tick(60)
 
         pygame.quit()
 
