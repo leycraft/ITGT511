@@ -19,7 +19,7 @@ class App:
         self.running = True
 
         self.ball = Agent(position = Vector2(window_width/2, window_height/2), 
-                          radius = 100, 
+                          radius = 30, 
                           color = (100,0,0))
         
         self.target = Vector2(0, 0)
@@ -34,7 +34,9 @@ class App:
         self.target = Vector2(mouse_x, mouse_y)
 
     def update(self, delta_time_ms):
-        self.ball.seek_to(self.target)
+        # self.ball.seek_to(self.target)
+        
+        self.ball.arrive_to(self.target)
         self.ball.update(delta_time_ms)
         
     
