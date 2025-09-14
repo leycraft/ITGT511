@@ -51,6 +51,31 @@ class Agent:
 
         self.apply_force(steering)        
 
+    def flee_from(self, target_pos):
+        MAX_FORCE = 5
+        d = -(target_pos - self.position)
+        if d.length_squared() == 0:
+            return
+        
+        dist = d.length()
+        
+        if dist < self.EYE_SIGHT:
+            desired = d.normalize() * MAX_FORCE * ((self.EYE_SIGHT - dist) / self.EYE_SIGHT)
+        else:
+            desired = Vector2(0, 0)
+
+
+        steering = desired - self.vel
+        
+        if steering.length() > MAX_FORCE:
+            steering.scale_to_length(MAX_FORCE)
+
+        self.apply_force(steering)
+
+
+    def patrol(self, target_pos):
+        return
+
     def apply_force(self, force):
         self.acc += force / self.mass
 

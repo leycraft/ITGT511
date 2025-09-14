@@ -17,12 +17,31 @@ class App:
         self.CHANGE_DIR = pygame.USEREVENT +1
         pygame.time.set_timer(self.CHANGE_DIR, 2000)
         self.running = True
-
-        self.ball = Agent(position = Vector2(window_width/2, window_height/2), 
-                          radius = 30, 
-                          color = (100,0,0))
         
-        self.target = Vector2(0, 0)
+        self.agents = [
+            Agent(position = Vector2(100, window_height/2), 
+                          radius = 30, 
+                          color = (100,0,0)),
+
+            Agent(position = Vector2(500, window_height/2), 
+                          radius = 20, 
+                          color = (100,100,0)),
+
+            Agent(position = Vector2(window_width/2, 300), 
+                          radius = 10, 
+                          color = (100,0,100))
+        ]
+        
+
+        # waypoints system
+        self.waypoints = [Vector2(200, 200), Vector2(1000, 200), Vector2(1000, 600), Vector2(200, 600)]
+
+        self.current_waypoint_numbers = [0, 1, 2]
+        self.targets = [self.waypoints[self.current_waypoint_numbers[0]],
+                        self.waypoints[self.current_waypoint_numbers[1]],
+                        self.waypoints[self.current_waypoint_numbers[2]]]
+
+        #self.target = Vector2(0, 0)
 
 
     def handle_input(self):
@@ -31,18 +50,33 @@ class App:
                 self.running = False
 
         mouse_x, mouse_y = pygame.mouse.get_pos()
-        self.target = Vector2(mouse_x, mouse_y)
+        #self.target = Vector2(mouse_x, mouse_y)
 
     def update(self, delta_time_ms):
-        # self.ball.seek_to(self.target)
-        
-        self.ball.arrive_to(self.target)
-        self.ball.update(delta_time_ms)
+        for i, agent in enumerate(self.agents):
+            dist = (agent.position - self.targets[i]).length()
+            if dist < 5:
+                # reach destination
+
+                self.current_waypoint_numbers[i] += 1
+                if self.current_waypoint_numbers[i] >= len(self.waypoints):
+                    self.current_waypoint_numbers[i] = 0
+
+                self.targets[i] = self.waypoints[self.current_waypoint_numbers[i]]
+
+            agent.arrive_to(self.targets[i])
+            agent.update(delta_time_ms)
+
         
     
     def draw(self):
         self.screen.fill("gray")
-        self.ball.draw(self.screen)
+
+        for agent in self.agents:
+            agent.draw(self.screen)
+
+    
+
         pygame.display.flip()
     
 
