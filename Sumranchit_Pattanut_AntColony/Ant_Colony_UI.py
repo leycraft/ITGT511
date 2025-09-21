@@ -3,6 +3,7 @@ import pygame
 from pygame.draw import circle, line, rect
 from pygame.math import Vector2
 from pygame import image
+import pygame_gui
 
 from ant import Ant
 
@@ -15,6 +16,16 @@ class App:
         pygame.init()
 
         self.screen = pygame.display.set_mode((window_width, window_height))
+
+        self.manager = pygame_gui.UIManager((800, 600))
+        self.hello_button = pygame_gui.elements.UIButton(relative_rect = pygame.Rect((350, 275), (100, 50)), 
+                                                         text = "say hello", 
+                                                         manager = self.manager)
+        #self.horizontal_slider = pygame_gui.elements.UIHorizontalSlider(relative_rect = pygame.Rect((150, 175), (300, 50)), 
+        #                                                                start_value=0,
+        #                                                                value_range=(0,100),
+        #                                                                manager=self.manager)
+
 
         self.clock = pygame.time.Clock()
         self.CHANGE_DIR = pygame.USEREVENT +1
@@ -60,6 +71,12 @@ class App:
             if event.type == pygame.QUIT:
                 self.running = False
 
+            if event.type == pygame_gui.UI_BUTTON_START_PRESS:
+                #event.ui_element == pygame_gui.UI_BUTTON_PRESSED:
+                print("hello world")
+
+            self.manager.process_events(event)
+
         mouse_x, mouse_y = pygame.mouse.get_pos()
         self.predator = Vector2(mouse_x, mouse_y)
 
@@ -84,6 +101,8 @@ class App:
                 self.targets[i] = self.waypoints[self.current_waypoint_numbers[i]]
 
             ant.Ant_AI_Full(self.targets[i], self.predator)
+
+            self.manager.update(delta_time_ms)
             ant.update(delta_time_ms)
 
         
@@ -95,6 +114,8 @@ class App:
 
         for ant in self.ants:
             ant.draw(self.screen)
+
+        self.manager.draw_ui(self.screen)
 
         pygame.display.flip()
     

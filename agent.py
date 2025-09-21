@@ -11,9 +11,12 @@ class Agent:
         self.mass = 1.0
         self.EYE_SIGHT = 100
         self.STOP_DIST = 5
+        self.target = Vector2(0,0)
 
     def seek_to(self, target_pos):
         MAX_FORCE = 5
+        self.target = target_pos
+        
         d = target_pos - self.position
         if d.length_squared() == 0:
             return
@@ -28,6 +31,7 @@ class Agent:
 
     def arrive_to(self, target_pos):
         MAX_FORCE = 5
+        self.target = target_pos
 
         d = target_pos - self.position
             
@@ -85,6 +89,8 @@ class Agent:
         self.acc = Vector2(0,0)
 
     def draw(self, screen):
-        circle(screen, "Yellow", self.position, self.EYE_SIGHT, width = 1)
+        #circle(screen, "Yellow", self.position, self.EYE_SIGHT, width = 1)
         circle(screen, self.circle_color, self.position, self.radius)
-        circle(screen, "Green", self.position, self.STOP_DIST, width = 1)
+        #circle(screen, "Green", self.position, self.STOP_DIST, width = 1)
+
+        line(screen, (100,100,100), self.position, self.target)
