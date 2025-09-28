@@ -67,6 +67,9 @@ class App:
                     sprite_location = "sprites\\missile.png")
         ]
 
+        for missile in self.missiles:
+            missile.set_gravity(Vector2(0, 0.1))
+
         self.target = Vector2(0, 0)
 
         self.missile_counter = 0

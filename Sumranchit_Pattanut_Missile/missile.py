@@ -28,6 +28,8 @@ class Missile:
         self.sprite_rotation = 0
         self.rotated_image = 0
 
+        self.gravity = Vector2(0,0)
+
 
     def missile_tracking(self, target_pos):
         MAX_FORCE = 5
@@ -93,6 +95,9 @@ class Missile:
     def apply_force(self, force):
         self.acc += force / self.mass
 
+    def set_gravity(self, gravity):
+        self.gravity = gravity
+
     def enable_missile(self, shot_angle):
         self.is_active = True
 
@@ -129,6 +134,9 @@ class Missile:
 
     def update(self, delta_time_ms):
         self.vel = self.vel + self.acc
+        if self.is_active == True:
+            self.vel = self.vel + self.gravity
+
         self.position = self.position + self.vel
         self.acc = Vector2(0,0)
 

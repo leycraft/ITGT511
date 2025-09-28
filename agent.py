@@ -12,6 +12,8 @@ class Agent:
         self.EYE_SIGHT = 100
         self.STOP_DIST = 5
         self.target = Vector2(0,0)
+        self.gravity = Vector2(0,0)
+        self.center_of_mass = Vector2(0,0)
 
     def seek_to(self, target_pos):
         MAX_FORCE = 5
@@ -76,16 +78,73 @@ class Agent:
 
         self.apply_force(steering)
 
-
-    def patrol(self, target_pos):
-        return
-
     def apply_force(self, force):
         self.acc += force / self.mass
 
+    def set_gravity(self, gravity):
+        self.gravity = gravity
+
+    def get_cohesion_force(self, agents):
+        center_of_mass = Vector2(0,0)
+        count = 0
+
+        for agent in agents:
+            dist = (agent.position - self.position).length_squared()
+            if 0 < dist < 400*400 :
+                center_of_mass += agent.position
+                count += 1
+
+        if count > 0:
+            center_of_mass /= count
+
+            d = center_of_mass - self.position
+            d.scale_to_length(1)
+
+            self.center_of_mass = center_of_mass
+
+            return d
+        return Vector2()
+    
+    def get_separation_force(self, agents):
+        s = Vector2(0,0)
+        count = 0
+        for agent in agents:
+            dist = (agent.position - self.position).length_squared()
+
+            if dist < 100*100 and dist != 0:
+                d =  self.position - agent.position
+                s += d
+                count += 1
+
+        if count > 0:
+            s.scale_to_length(1)
+            return s
+        
+        return Vector2(0,0)
+    
+    def get_align_force(self, agents):
+        s = Vector2(0,0)
+        count = 0
+        for agent in agents:
+            dist = (agent.position - self.position).length_squared()
+
+            if dist < 500*500 and dist != 0:
+                d =  self.position - agent.position
+                s += agent.vel
+                count += 1
+
+        if count > 0 and s != Vector2():
+            s /= count
+            s.scale_to_length(2)
+            return s
+        
+        return Vector2(0,0)
+            
+
     def update(self, delta_time_ms):
-        self.vel = self.vel + self.acc
+        self.vel = self.vel + self.acc + self.gravity
         self.position = self.position + self.vel
+        self.vel *= 0.95
         self.acc = Vector2(0,0)
 
     def draw(self, screen):
@@ -93,4 +152,4 @@ class Agent:
         circle(screen, self.circle_color, self.position, self.radius)
         #circle(screen, "Green", self.position, self.STOP_DIST, width = 1)
 
-        line(screen, (100,100,100), self.position, self.target)
+        line(screen, (100,100,100), self.position, self.center_of_mass)
