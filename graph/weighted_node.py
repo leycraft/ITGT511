@@ -1,7 +1,9 @@
 class WeightedNode:
-    def __init__(self, value):
+    def __init__(self, value, x, y):
         self.value = value
         self.neighbors = {}
+        self.x = x
+        self. y = y
         self.visited = False
         self.distance = float('inf')
         self.previous = None
@@ -22,15 +24,15 @@ class WeightedGraph:
     def __init__(self):
         self.nodes = {}
 
-    def add_node(self, value):
+    def add_node(self, value, x, y):
         if value not in self.nodes:
-            self.nodes[value] = WeightedNode(value)
+            self.nodes[value] = WeightedNode(value, x, y)
 
         return self.nodes[value]
     
     def add_edge(self, from_value, to_value, weight):
-        from_node = self.add_node(from_value)
-        to_node = self.add_node(to_value)
+        from_node = self.add_node(from_value, 0, 0)
+        to_node = self.add_node(to_value, 0, 0)
         from_node.add_neighbor(to_node, weight)
 
     def get_node(self, value):
