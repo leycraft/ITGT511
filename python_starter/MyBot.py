@@ -3,7 +3,6 @@ from hlt import constants
 from hlt.positionals import Direction, Position
 import random
 import logging
-from astar import AStar
 
 """ <<<Game Begin>>> """
 
@@ -13,46 +12,137 @@ game.ready("Boseley")
 
 logging.info("Successfully created bot! My Player ID is {}.".format(game.my_id))
 
-def get_move_direction(game_map, ship, target):
-    pass
-
-
-
-def get_direction(dx, dy):
+def get_direction(dx, dy, ship_id):
     go_to = ship.stay_still()
 
     x = dx % 2
     y = dy % 2
 
-    if dx > 0:
-        if not game_map[ship.position + Position(1,0)].is_occupied:
-            go_to = ship.move(Direction.East)
-        else:
-            go_to = ship.move(random.choice([Direction.South, Direction.North]))
-    elif dx < 0:
-        if not game_map[ship.position + Position(-1,0)].is_occupied:
-            go_to = ship.move(Direction.West)
-        else:
-            go_to = ship.move(random.choice([Direction.South, Direction.North]))
-    elif dy > 0:
-        if not game_map[ship.position + Position(0,1)].is_occupied:
-            go_to = ship.move(Direction.South)
-        else:
-            go_to = ship.move(random.choice([Direction.East, Direction.West]))
-    elif dy < 0:
-        if not game_map[ship.position + Position(0,-1)].is_occupied:
-            go_to = ship.move(Direction.North)
-        else:
-            go_to = ship.move(random.choice([Direction.East, Direction.West]))
+    if ship_go_x_first[ship_id]:
+        # go right
+        if dx > 0:
+            if not game_map[ship.position + Position(1,0)].is_occupied and not game_map[ship.position + Position(1,1)].is_occupied:
+                go_to = ship.move(Direction.East)
+                if game_map[ship.position + Position(2,0)].is_occupied: 
+                    go_to = ship.move(Direction.North)
+            else:
+                go_to = ship.move(Direction.North)
+
+            if go_to == ship.move(Direction.North) and (game_map[ship.position + Position(0,-1)].is_occupied or game_map[ship.position + Position(1,-1)].is_occupied):
+                go_to = ship.stay_still()
+
+        # go left
+        elif dx < 0:
+            if not game_map[ship.position + Position(-1,0)].is_occupied and not game_map[ship.position + Position(-1,-1)].is_occupied:
+                go_to = ship.move(Direction.West)
+                if game_map[ship.position + Position(-2,0)].is_occupied: 
+                    go_to = ship.move(Direction.South)
+            else:
+                go_to = ship.move(Direction.South)
+
+            if go_to == ship.move(Direction.South) and (game_map[ship.position + Position(0,1)].is_occupied or game_map[ship.position + Position(-1,1)].is_occupied):
+                go_to = ship.stay_still()
+
+        # go down
+        elif dy > 0:
+            if not game_map[ship.position + Position(0,1)].is_occupied and not game_map[ship.position + Position(-1,1)].is_occupied:
+                go_to = ship.move(Direction.South)
+                if game_map[ship.position + Position(0,2)].is_occupied: 
+                    go_to = ship.move(Direction.East)
+                    ship_go_x_first[ship_id] = False
+            else:
+                go_to = ship.move(Direction.East)
+                ship_go_x_first[ship_id] = False
+
+            if go_to == ship.move(Direction.East) and (game_map[ship.position + Position(1,0)].is_occupied or game_map[ship.position + Position(1,1)].is_occupied):
+                go_to = ship.stay_still()
+
+        # go up
+        elif dy < 0:
+            if not game_map[ship.position + Position(0,-1)].is_occupied and not game_map[ship.position + Position(1,-1)].is_occupied:
+                go_to = ship.move(Direction.North)
+                if game_map[ship.position + Position(0,-2)].is_occupied: 
+                    go_to = ship.move(Direction.West)
+                    ship_go_x_first[ship_id] = False
+            else:
+                go_to = ship.move(Direction.West)
+                ship_go_x_first[ship_id] = False
+
+            if go_to == ship.move(Direction.West) and (game_map[ship.position + Position(-1,0)].is_occupied or game_map[ship.position + Position(-1,-1)].is_occupied):
+                go_to = ship.stay_still()
+    else:
+        # go down
+        if dy > 0:
+            if not game_map[ship.position + Position(0,1)].is_occupied and not game_map[ship.position + Position(-1,1)].is_occupied:
+                go_to = ship.move(Direction.South)
+                if game_map[ship.position + Position(0,2)].is_occupied: 
+                    go_to = ship.move(Direction.East)
+            else:
+                go_to = ship.move(Direction.East)
+
+            if go_to == ship.move(Direction.East) and (game_map[ship.position + Position(1,0)].is_occupied or game_map[ship.position + Position(1,1)].is_occupied):
+                go_to = ship.stay_still()
+
+        # go up
+        elif dy < 0:
+            if not game_map[ship.position + Position(0,-1)].is_occupied and not game_map[ship.position + Position(1,-1)].is_occupied:
+                go_to = ship.move(Direction.North)
+                if game_map[ship.position + Position(0,-2)].is_occupied: 
+                    go_to = ship.move(Direction.West)
+            else:
+                go_to = ship.move(Direction.West)
+
+            if go_to == ship.move(Direction.West) and (game_map[ship.position + Position(-1,0)].is_occupied or game_map[ship.position + Position(-1,-1)].is_occupied):
+                go_to = ship.stay_still()
+                
+        # go right
+        elif dx > 0:
+            if not game_map[ship.position + Position(1,0)].is_occupied and not game_map[ship.position + Position(1,1)].is_occupied:
+                go_to = ship.move(Direction.East)
+                if game_map[ship.position + Position(2,0)].is_occupied: 
+                    go_to = ship.move(Direction.North)
+                    ship_go_x_first[ship_id] = True
+            else:
+                go_to = ship.move(Direction.North)
+                ship_go_x_first[ship_id] = True
+
+            if go_to == ship.move(Direction.North) and (game_map[ship.position + Position(0,-1)].is_occupied or game_map[ship.position + Position(1,-1)].is_occupied):
+                go_to = ship.stay_still()
+
+        # go left
+        elif dx < 0:
+            if not game_map[ship.position + Position(-1,0)].is_occupied and not game_map[ship.position + Position(-1,-1)].is_occupied:
+                go_to = ship.move(Direction.West)
+                if game_map[ship.position + Position(-2,0)].is_occupied: 
+                    go_to = ship.move(Direction.South)
+                    ship_go_x_first[ship_id] = True
+            else:
+                go_to = ship.move(Direction.South)
+                ship_go_x_first[ship_id] = True
+
+            if go_to == ship.move(Direction.South) and (game_map[ship.position + Position(0,1)].is_occupied or game_map[ship.position + Position(-1,1)].is_occupied):
+                go_to = ship.stay_still()
 
     return go_to
+
+def find_halite_tile(ship_id):
+    halite_num = 0
+    halite_x = 0
+    halite_y = 0
+
+    for i in range(32):
+        for j in range(32):
+            if game_map[Position(i,j)].halite_amount > halite_num and Position(i,j) not in ship_target.values():
+                halite_num = game_map[Position(i,j)].halite_amount
+                halite_x = i
+                halite_y = j
+                ship_target[ship_id] = Position(i,j)
 
 """ <<<Game Loop>>> """
 
 ship_states = {}
 ship_target = {}
-
-astar = AStar(game.game_map)
+ship_go_x_first = {}
 
 while True:
     game.update_frame()
@@ -71,13 +161,11 @@ while True:
                 ship_states[ship.id] = "finding"
             if ship.id not in ship_target:
                 ship_target[ship.id] = ship.position
+            if ship.id not in ship_go_x_first:
+                ship_go_x_first[ship.id] = True
 
             # ------------------------------------------
             
-            halite_num = 0
-            halite_x = 0
-            halite_y = 0
-
             ship_pos = ship.position
 
             dx = ship_target[ship.id].x - ship_pos.x
@@ -86,24 +174,16 @@ while True:
             move_to = ship.stay_still()
 
             if ship_states[ship.id] == "finding":
-                # target = ship_target[ship.id]
-
-                for i in range(32):
-                    for j in range(32):
-                        if game_map[Position(i,j)].halite_amount > halite_num and Position(i,j) not in ship_target.values():
-                            halite_num = game_map[Position(i,j)].halite_amount
-                            halite_x = i
-                            halite_y = j
-                            ship_target[ship.id] = Position(i,j)
+                find_halite_tile(ship.id)
 
                 ship_states[ship.id] = "seeking"
-                move_to = get_direction(dx, dy)
+                move_to = get_direction(dx, dy, ship.id)
 
 
 
 
             elif ship_states[ship.id] == "seeking":
-                move_to = get_direction(dx, dy)
+                move_to = get_direction(dx, dy, ship.id)
 
                 if game_map[ship.position].halite_amount > 500 or ship.position == ship_target[ship.id]:
                     ship_states[ship.id] = "collecting"
@@ -122,15 +202,10 @@ while True:
             elif ship_states[ship.id] == "returning": 
                 ship_target[ship.id] = home_base
 
-                # move_to = get_direction(dx, dy)
-                move_to = ship.move(astar.get_next_move(ship, ship_target[ship.id]))
+                move_to = get_direction(dx, dy, ship.id)
 
                 if ship.position == home_base:
                     ship_states[ship.id] = "finding"
-                
-
-                # target = me.shipyard.position
-                # direction = astar.get_next_move(ship, target)
 
 
             command_queue.append(move_to)
@@ -140,8 +215,9 @@ while True:
             command_queue.append(ship.stay_still())
 
 
-    if game.turn_number <= 200 and me.halite_amount >= constants.SHIP_COST and not game_map[me.shipyard].is_occupied:
-        command_queue.append(me.shipyard.spawn())
+    if len(me.get_ships()) < 8 and me.halite_amount >= constants.SHIP_COST and not game_map[me.shipyard].is_occupied:
+        if not game_map[me.shipyard.position + Position(1,0)].is_occupied and not game_map[me.shipyard.position + Position(-1,0)].is_occupied and not game_map[me.shipyard.position + Position(0,1)].is_occupied and not game_map[me.shipyard.position + Position(0,-1)].is_occupied:
+            command_queue.append(me.shipyard.spawn())
 
     game.end_turn(command_queue)
 
