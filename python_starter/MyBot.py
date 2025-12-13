@@ -125,24 +125,49 @@ def get_direction(dx, dy, ship_id):
 
     return go_to
 
-def find_halite_tile(ship_id):
+def find_halite_tile(ship_id, ship_pos):
     halite_num = 0
     halite_x = 0
     halite_y = 0
 
-    for i in range(32):
-        for j in range(32):
-            if game_map[Position(i,j)].halite_amount > halite_num and Position(i,j) not in ship_target.values():
-                halite_num = game_map[Position(i,j)].halite_amount
-                halite_x = i
-                halite_y = j
-                ship_target[ship_id] = Position(i,j)
+    width = game_map.width
+    height = game_map.height
+
+    radius = 5
+
+    if game.turn_number <= 200:
+
+        if game.turn_number <= 50:
+            radius = 3
+        elif game.turn_number <= 100:
+            radius = 6
+        elif game.turn_number <= 150:
+            radius = 9
+        else:
+            radius = 12
+
+        for i in range(ship_pos.x - radius, ship_pos.x + radius):
+            for j in range(ship_pos.y - radius, ship_pos.y + radius):
+                if game_map[Position(i,j)].halite_amount > halite_num and Position(i,j) not in ship_target.values():
+                    halite_num = game_map[Position(i,j)].halite_amount
+                    halite_x = i
+                    halite_y = j
+                    ship_target[ship_id] = Position(i,j)
+    else:
+        for i in range(width):
+            for j in range(height):
+                if game_map[Position(i,j)].halite_amount > halite_num and Position(i,j) not in ship_target.values():
+                    halite_num = game_map[Position(i,j)].halite_amount
+                    halite_x = i
+                    halite_y = j
+                    ship_target[ship_id] = Position(i,j)
 
 """ <<<Game Loop>>> """
 
 ship_states = {}
 ship_target = {}
 ship_go_x_first = {}
+ship_idle_timer = {}
 
 while True:
     game.update_frame()
@@ -163,6 +188,8 @@ while True:
                 ship_target[ship.id] = ship.position
             if ship.id not in ship_go_x_first:
                 ship_go_x_first[ship.id] = True
+            if ship.id not in ship_idle_timer:
+                ship_idle_timer[ship.id] = 0
 
             # ------------------------------------------
             
@@ -174,7 +201,7 @@ while True:
             move_to = ship.stay_still()
 
             if ship_states[ship.id] == "finding":
-                find_halite_tile(ship.id)
+                find_halite_tile(ship.id, ship_pos)
 
                 ship_states[ship.id] = "seeking"
                 move_to = get_direction(dx, dy, ship.id)
@@ -188,8 +215,17 @@ while True:
                 if game_map[ship.position].halite_amount > 500 or ship.position == ship_target[ship.id]:
                     ship_states[ship.id] = "collecting"
 
-                if ship.is_full:
-                    ship_states[ship.id] = "returning"
+                if game.turn_number <= 325:
+                    if ship.is_full:
+                        ship_states[ship.id] = "returning"
+                elif game.turn_number <= 360:
+                    if ship.halite_amount > 500:
+                        ship_states[ship.id] = "returning"
+                else:
+                    if ship.halite_amount > 300:
+                        ship_states[ship.id] = "returning"
+
+                
 
             elif ship_states[ship.id] == "collecting":
                 move_to = ship.stay_still()
@@ -208,14 +244,20 @@ while True:
                     ship_states[ship.id] = "finding"
 
 
-            command_queue.append(move_to)
+            if move_to == ship.stay_still():
+                ship_idle_timer[ship.id] += 1
+                if ship_idle_timer[ship.id] > 4 and not game_map[ship_pos + Position(0,-1)].is_occupied:
+                    move_to = ship.move(Direction.North)
+                    ship_idle_timer[ship.id] = 0
+            else:
+                ship_idle_timer[ship.id] = 0
 
+            command_queue.append(move_to)
 
         else:
             command_queue.append(ship.stay_still())
 
-
-    if len(me.get_ships()) < 8 and me.halite_amount >= constants.SHIP_COST and not game_map[me.shipyard].is_occupied:
+    if len(me.get_ships()) < 12 and me.halite_amount >= constants.SHIP_COST and not game_map[me.shipyard].is_occupied:
         if not game_map[me.shipyard.position + Position(1,0)].is_occupied and not game_map[me.shipyard.position + Position(-1,0)].is_occupied and not game_map[me.shipyard.position + Position(0,1)].is_occupied and not game_map[me.shipyard.position + Position(0,-1)].is_occupied:
             command_queue.append(me.shipyard.spawn())
 
